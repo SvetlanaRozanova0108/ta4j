@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.indicators.AbstractIndicatorTest;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.indicators.helpers.FixedIndicator;
 import org.ta4j.core.mocks.MockBarSeriesBuilder;
 import org.ta4j.core.mocks.MockIndicator;
 import org.ta4j.core.num.Num;
@@ -356,5 +357,33 @@ public class BinaryOperationIndicatorTest extends AbstractIndicatorTest<BinaryOp
         assertThrows(IllegalArgumentException.class, () -> {
             BinaryOperationIndicator.sum(left, right);
         });
+    }
+
+    @Test
+    public void testRemainderWithConstant() {
+        var series = new MockBarSeriesBuilder().withNumFactory(numFactory).withData(7, 8, 9, 10).build();
+        var close = new ClosePriceIndicator(series);
+
+        var result = BinaryOperationIndicator.remainder(close, 3);
+
+        assertNumEquals(1, result.getValue(0));
+        assertNumEquals(2, result.getValue(1));
+        assertNumEquals(0, result.getValue(2));
+        assertNumEquals(1, result.getValue(3));
+    }
+
+    @Test
+    public void testRemainderOfTwoIndicators() {
+        var series = new MockBarSeriesBuilder().withNumFactory(numFactory).withData(7, 8, 9, 10).build();
+        var close = new ClosePriceIndicator(series);
+        var divisor = new FixedIndicator(series, numFactory.numOf(4), numFactory.numOf(4),
+                numFactory.numOf(4), numFactory.numOf(4));
+
+        var result = BinaryOperationIndicator.remainder(close, divisor);
+
+        assertNumEquals(3, result.getValue(0));
+        assertNumEquals(0, result.getValue(1));
+        assertNumEquals(1, result.getValue(2));
+        assertNumEquals(2, result.getValue(3));
     }
 }

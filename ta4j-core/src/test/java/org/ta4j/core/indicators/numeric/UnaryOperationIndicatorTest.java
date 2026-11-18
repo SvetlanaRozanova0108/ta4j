@@ -274,4 +274,78 @@ public class UnaryOperationIndicatorTest extends AbstractIndicatorTest<UnaryOper
             assertNumEquals(original.getValue(i), reconstructed.getValue(i));
         }
     }
+
+    @Test
+    public void testExp() {
+        final var series = new MockBarSeriesBuilder().withNumFactory(numFactory).withData(0, 1, 2).build();
+        final var result = UnaryOperationIndicator.exp(new ClosePriceIndicator(series));
+
+        assertNumEquals(1, result.getValue(0));
+        assertNumEquals(Math.exp(1), result.getValue(1));
+        assertNumEquals(Math.exp(2), result.getValue(2));
+    }
+
+    @Test
+    public void testLog10() {
+        final var series = new MockBarSeriesBuilder().withNumFactory(numFactory).withData(1, 10, 1000).build();
+        final var result = UnaryOperationIndicator.log10(new ClosePriceIndicator(series));
+
+        assertNumEquals(0.0, result.getValue(0));
+        assertNumEquals(1.0, result.getValue(1));
+        assertNumEquals(3.0, result.getValue(2));
+    }
+
+    @Test
+    public void testInverse() {
+        final var series = new MockBarSeriesBuilder().withNumFactory(numFactory).withData(2, 4, 0.5).build();
+        final var result = UnaryOperationIndicator.inverse(new ClosePriceIndicator(series));
+
+        assertNumEquals(0.5, result.getValue(0));
+        assertNumEquals(0.25, result.getValue(1));
+        assertNumEquals(2.0, result.getValue(2));
+    }
+
+    @Test
+    public void testTrigonometricInRadians() {
+        final var series = new MockBarSeriesBuilder().withNumFactory(numFactory)
+                .withData(0, 1, 0.5, 1).build();
+        final var close = new ClosePriceIndicator(series);
+
+        assertNumEquals(Math.sin(1), UnaryOperationIndicator.sin(close).getValue(1));
+        assertNumEquals(Math.cos(1), UnaryOperationIndicator.cos(close).getValue(1));
+        assertNumEquals(Math.tan(1), UnaryOperationIndicator.tan(close).getValue(1));
+        assertNumEquals(Math.asin(0.5), UnaryOperationIndicator.asin(close).getValue(2));
+        assertNumEquals(Math.acos(0.5), UnaryOperationIndicator.acos(close).getValue(2));
+        assertNumEquals(Math.atan(1), UnaryOperationIndicator.atan(close).getValue(3));
+        assertNumEquals(Math.sinh(1), UnaryOperationIndicator.sinh(close).getValue(1));
+        assertNumEquals(Math.cosh(1), UnaryOperationIndicator.cosh(close).getValue(1));
+        assertNumEquals(Math.tanh(1), UnaryOperationIndicator.tanh(close).getValue(1));
+    }
+
+    @Test
+    public void testTrigonometricInDegrees() {
+        final var series = new MockBarSeriesBuilder().withNumFactory(numFactory)
+                .withData(30, 60, 45, Math.toDegrees(1)).build();
+        final var close = new ClosePriceIndicator(series);
+
+        assertNumEquals(0.5, UnaryOperationIndicator.sinD(close).getValue(0));
+        assertNumEquals(0.5, UnaryOperationIndicator.cosD(close).getValue(1));
+        assertNumEquals(1.0, UnaryOperationIndicator.tanD(close).getValue(2));
+        final var halfClose = new ClosePriceIndicator(
+                new MockBarSeriesBuilder().withNumFactory(numFactory).withData(0.5).build());
+        assertNumEquals(30.0, UnaryOperationIndicator.asinD(halfClose).getValue(0));
+        assertNumEquals(60.0, UnaryOperationIndicator.acosD(halfClose).getValue(0));
+        final var oneClose = new ClosePriceIndicator(
+                new MockBarSeriesBuilder().withNumFactory(numFactory).withData(1).build());
+        assertNumEquals(45.0, UnaryOperationIndicator.atanD(oneClose).getValue(0));
+        final var zeroClose = new ClosePriceIndicator(
+                new MockBarSeriesBuilder().withNumFactory(numFactory).withData(0).build());
+        assertNumEquals(0.0, UnaryOperationIndicator.sinhD(zeroClose).getValue(0));
+        assertNumEquals(1.0, UnaryOperationIndicator.coshD(zeroClose).getValue(0));
+        assertNumEquals(0.0, UnaryOperationIndicator.tanhD(zeroClose).getValue(0));
+        // sinh of 1 radian, fed as degrees
+        assertNumEquals(Math.sinh(1), UnaryOperationIndicator.sinhD(close).getValue(3));
+        assertNumEquals(Math.cosh(1), UnaryOperationIndicator.coshD(close).getValue(3));
+        assertNumEquals(Math.tanh(1), UnaryOperationIndicator.tanhD(close).getValue(3));
+    }
 }
