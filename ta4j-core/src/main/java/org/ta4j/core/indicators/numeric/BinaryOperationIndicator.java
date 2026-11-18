@@ -23,7 +23,7 @@ public class BinaryOperationIndicator implements Indicator<Num> {
      * Enumeration of supported binary operations.
      */
     public enum Operation {
-        PLUS, MINUS, MULTIPLY, DIVIDE, MIN, MAX
+        PLUS, MINUS, MULTIPLY, DIVIDE, REMAINDER, MIN, MAX
     }
 
     /**
@@ -100,6 +100,19 @@ public class BinaryOperationIndicator implements Indicator<Num> {
      */
     public static BinaryOperationIndicator max(final Indicator<Num> left, final Indicator<Num> right) {
         return new BinaryOperationIndicator(Operation.MAX, left, right);
+    }
+
+    /**
+     * Returns an {@code Indicator} whose value is {@code (left % right)}, the
+     * remainder of the division of {@code left} by {@code right}.
+     *
+     * @param left  the dividend Indicator
+     * @param right the divisor Indicator
+     * @return {@code left % right}, rounded as necessary
+     * @see Num#remainder
+     */
+    public static BinaryOperationIndicator remainder(final Indicator<Num> left, final Indicator<Num> right) {
+        return new BinaryOperationIndicator(Operation.REMAINDER, left, right);
     }
 
     // Overloaded methods for operations with constants
@@ -190,6 +203,20 @@ public class BinaryOperationIndicator implements Indicator<Num> {
         return new BinaryOperationIndicator(Operation.MAX, indicator, constantIndicator);
     }
 
+    /**
+     * Returns an {@code Indicator} whose value is {@code (indicator % divisor)},
+     * the remainder of the division of {@code indicator} by {@code divisor}.
+     *
+     * @param indicator the dividend indicator
+     * @param divisor   the divisor constant
+     * @return {@code indicator % divisor}, rounded as necessary
+     */
+    public static BinaryOperationIndicator remainder(final Indicator<Num> indicator, final Number divisor) {
+        final var constantIndicator = new ConstantIndicator<>(indicator.getBarSeries(),
+                indicator.getBarSeries().numFactory().numOf(divisor));
+        return new BinaryOperationIndicator(Operation.REMAINDER, indicator, constantIndicator);
+    }
+
     private final Operation operation;
     private final BinaryOperator<Num> operator;
     private final Indicator<Num> left;
@@ -221,6 +248,7 @@ public class BinaryOperationIndicator implements Indicator<Num> {
         case MINUS -> Num::minus;
         case MULTIPLY -> Num::multipliedBy;
         case DIVIDE -> Num::dividedBy;
+        case REMAINDER -> Num::remainder;
         case MIN -> Num::min;
         case MAX -> Num::max;
         };
