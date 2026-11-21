@@ -288,4 +288,54 @@ public class ExpressionIndicatorTest extends AbstractIndicatorTest<Indicator<Num
             assertNumEquals(20, new ExpressionIndicator(series, "Double(Close)").getValue(0));
         }
     }
+
+    // ---------------------------------------------------------- NSTRDIND functional forms
+
+    @Test
+    public void nstrdindOperatorFunctionForms() {
+        // "A>B" is one function-name token with its two operands in parentheses; equals the word form.
+        Indicator<Num> gt = new ExpressionIndicator(series, "A>B(Close, SMA(Close, 3))");
+        Indicator<Num> gtRef = new ExpressionIndicator(series, "Greater(Close, SMA(Close, 3))");
+        Indicator<Num> ge = new ExpressionIndicator(series, "A>=B(Close, SMA(Close, 3))");
+        Indicator<Num> geRef = new ExpressionIndicator(series, "GreaterOrEqual(Close, SMA(Close, 3))");
+        Indicator<Num> ne = new ExpressionIndicator(series, "A!=B(Close, SMA(Close, 3))");
+        Indicator<Num> neRef = new ExpressionIndicator(series, "NotEqual(Close, SMA(Close, 3))");
+        Indicator<Num> sum = new ExpressionIndicator(series, "A+B(Close, Close)");
+        Indicator<Num> sumRef = new ExpressionIndicator(series, "Add(Close, Close)");
+        Indicator<Num> prod = new ExpressionIndicator(series, "A*B(Close, 2)");
+        Indicator<Num> prodRef = new ExpressionIndicator(series, "Multiply(Close, 2)");
+        for (int i = 0; i <= series.getEndIndex(); i++) {
+            assertNumEquals(gtRef.getValue(i), gt.getValue(i));
+            assertNumEquals(geRef.getValue(i), ge.getValue(i));
+            assertNumEquals(neRef.getValue(i), ne.getValue(i));
+            assertNumEquals(sumRef.getValue(i), sum.getValue(i));
+            assertNumEquals(prodRef.getValue(i), prod.getValue(i));
+        }
+        // logic stays And/Or/Not and nests the A>B comparisons; must equal the word-function form
+        Indicator<Num> logic = new ExpressionIndicator(series,
+                "And(A>B(Close, SMA(Close, 3)), A<B(Close, 1000))");
+        Indicator<Num> logicRef = new ExpressionIndicator(series,
+                "And(Greater(Close, SMA(Close, 3)), Less(Close, 1000))");
+        for (int i = 3; i <= series.getEndIndex(); i++) {
+            assertNumEquals(logicRef.getValue(i), logic.getValue(i));
+        }
+    }
+
+    @Test
+    public void nstrdindNameAliasesMatchTa4jIndicators() {
+        Indicator<Num> ema = new ExpressionIndicator(series, "ExpAvg(Close, 3)");
+        Indicator<Num> sma = new ExpressionIndicator(series, "MovAvg(Close, 3)");
+        Indicator<Num> wma = new ExpressionIndicator(series, "LinWgtAvg(Close, 3)");
+        Indicator<Num> vwma = new ExpressionIndicator(series, "VolWgtAvg(Close, 3)");
+        Indicator<Num> emaRef = new ExpressionIndicator(series, "EMA(Close, 3)");
+        Indicator<Num> smaRef = new ExpressionIndicator(series, "SMA(Close, 3)");
+        Indicator<Num> wmaRef = new ExpressionIndicator(series, "WMA(Close, 3)");
+        Indicator<Num> vwmaRef = new ExpressionIndicator(series, "VWMA(Close, 3)");
+        for (int i = 3; i <= series.getEndIndex(); i++) {
+            assertNumEquals(emaRef.getValue(i), ema.getValue(i));
+            assertNumEquals(smaRef.getValue(i), sma.getValue(i));
+            assertNumEquals(wmaRef.getValue(i), wma.getValue(i));
+            assertNumEquals(vwmaRef.getValue(i), vwma.getValue(i));
+        }
+    }
 }

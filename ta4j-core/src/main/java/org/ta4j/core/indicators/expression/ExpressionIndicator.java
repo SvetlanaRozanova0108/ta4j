@@ -541,6 +541,50 @@ public class ExpressionIndicator extends CachedIndicator<Num> {
             });
             reg(functions, "VWMA", 2, 2, (args, s) -> new VWMAIndicator(indicator(args, 0), period(args, 1)));
 
+            // --- NSTRDIND "Library of Technical Analysis Indicators" name aliases ---
+            // Doc abbreviations that are valid identifiers and do not collide are exposed
+            // verbatim. "MovAvg" stands for the doc's "Avg" (simple moving average) because
+            // the bare token "Avg" is already the arithmetic mean above. Doc names containing
+            // '%' or spaces (Stoch%K, MACD Signal, BB %B) are not valid tokens and keep the
+            // ta4j identifiers instead.
+            reg(functions, "MovAvg", 2, 2, (args, s) -> new SMAIndicator(indicator(args, 0), period(args, 1)));
+            reg(functions, "ExpAvg", 2, 2, (args, s) -> new EMAIndicator(indicator(args, 0), period(args, 1)));
+            reg(functions, "LinWgtAvg", 2, 2, (args, s) -> new WMAIndicator(indicator(args, 0), period(args, 1)));
+            reg(functions, "VolWgtAvg", 2, 2, (args, s) -> new VWMAIndicator(indicator(args, 0), period(args, 1)));
+
+            // --- NSTRDIND operator-function forms: single-name token, operands in parens ---
+            // The operator is ONE identifier token whose name encodes the operation
+            // (e.g. "A>B"), and its two operands go in the parentheses:
+            //   A>B(Close, SMA(Close, 10))  ->  Close > SMA(Close, 10)
+            // The lexer already reads such a token as a single word (its characters are valid
+            // identifier characters); it is matched as an ordinary function name, so the whole
+            // language stays functional (no infix parser). Logic stays And/Or/Not (a word like
+            // "and" cannot carry operands in this style because identifiers contain no spaces).
+            reg(functions, "A>B", 2, 2, (args, s) -> new Map2Indicator(indicator(args, 0), indicator(args, 1),
+                    (a, b) -> a > b ? 1 : 0));
+            reg(functions, "A>=B", 2, 2, (args, s) -> new Map2Indicator(indicator(args, 0), indicator(args, 1),
+                    (a, b) -> a >= b ? 1 : 0));
+            reg(functions, "A<B", 2, 2, (args, s) -> new Map2Indicator(indicator(args, 0), indicator(args, 1),
+                    (a, b) -> a < b ? 1 : 0));
+            reg(functions, "A<=B", 2, 2, (args, s) -> new Map2Indicator(indicator(args, 0), indicator(args, 1),
+                    (a, b) -> a <= b ? 1 : 0));
+            reg(functions, "A=B", 2, 2, (args, s) -> new Map2Indicator(indicator(args, 0), indicator(args, 1),
+                    (a, b) -> a == b ? 1 : 0));
+            reg(functions, "A!=B", 2, 2, (args, s) -> new Map2Indicator(indicator(args, 0), indicator(args, 1),
+                    (a, b) -> a != b ? 1 : 0));
+            reg(functions, "A<>B", 2, 2, (args, s) -> new Map2Indicator(indicator(args, 0), indicator(args, 1),
+                    (a, b) -> a != b ? 1 : 0));
+            reg(functions, "A+B", 2, 2,
+                    (args, s) -> BinaryOperationIndicator.sum(indicator(args, 0), indicator(args, 1)));
+            reg(functions, "A-B", 2, 2,
+                    (args, s) -> BinaryOperationIndicator.difference(indicator(args, 0), indicator(args, 1)));
+            reg(functions, "A*B", 2, 2,
+                    (args, s) -> BinaryOperationIndicator.product(indicator(args, 0), indicator(args, 1)));
+            reg(functions, "A/B", 2, 2,
+                    (args, s) -> BinaryOperationIndicator.quotient(indicator(args, 0), indicator(args, 1)));
+            reg(functions, "A%B", 2, 2, (args, s) -> new Map2Indicator(indicator(args, 0), indicator(args, 1),
+                    (a, b) -> a % b));
+
             // --- oscillators / channels ----------------------------------------
             reg(functions, "RSI", 2, 2, (args, s) -> new RSIIndicator(indicator(args, 0), period(args, 1)));
             reg(functions, "CMO", 2, 2, (args, s) -> new CMOIndicator(indicator(args, 0), period(args, 1)));
